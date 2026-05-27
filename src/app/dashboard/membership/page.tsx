@@ -9,6 +9,9 @@ export default async function MembershipPage() {
   const memberships = await prisma.membership.findMany({
     where: { userId: session.id },
     orderBy: { createdAt: "desc" },
+    include: {
+      payments: { orderBy: { createdAt: "desc" }, take: 1 },
+    },
   });
 
   return (
@@ -24,6 +27,7 @@ export default async function MembershipPage() {
           type: m.type,
           status: m.status,
           expiryDate: m.expiryDate?.toISOString().slice(0, 10) ?? null,
+          latestPaymentStatus: m.payments[0]?.status ?? null,
         }))}
       />
     </div>

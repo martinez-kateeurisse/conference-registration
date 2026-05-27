@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { attachDemoProofToInput } from "@/lib/demo-proof";
 import type { Event } from "@prisma/client";
 
 function fileToBase64(file: File): Promise<string> {
@@ -21,6 +22,7 @@ export function EventRegistrationForms({ events }: { events: Event[] }) {
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const proofRef = useRef<HTMLInputElement>(null);
 
   const event = events.find((e) => e.id === selected);
 
@@ -198,7 +200,26 @@ export function EventRegistrationForms({ events }: { events: Event[] }) {
             <Field name="payeeName" label="Payee name (for OR)" />
             <div>
               <label className="label">Upload proof (image/PDF, max 5MB)</label>
-              <input name="proof" type="file" accept="image/*,.pdf" className="input-field" required />
+              <input
+                ref={proofRef}
+                name="proof"
+                type="file"
+                accept="image/*,.pdf,application/pdf"
+                className="input-field"
+                required
+              />
+              <button
+                type="button"
+                className="mt-2 text-xs text-indigo-600 hover:underline"
+                onClick={() => {
+                  if (attachDemoProofToInput(proofRef.current)) {
+                    setIsError(false);
+                    setMessage("Demo receipt attached. Complete the form and submit.");
+                  }
+                }}
+              >
+                Use demo receipt (for testing)
+              </button>
             </div>
             <button type="submit" className="btn-primary w-full" disabled={loading}>
               Submit payment for verification

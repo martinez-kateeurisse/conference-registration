@@ -9,12 +9,14 @@ const TYPES = Object.entries(EVENT_CERT_LABELS) as [EventCertType, string][];
 export function CertificateRequestForm({ eventOptions }: { eventOptions: { id: string; name: string }[] }) {
   const [type, setType] = useState<EventCertType>("PARTICIPATION");
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+    setIsError(false);
     const fd = new FormData(e.currentTarget);
     try {
       const res = await fetch("/api/certificates/event", {
@@ -34,6 +36,7 @@ export function CertificateRequestForm({ eventOptions }: { eventOptions: { id: s
       setMessage("Certificate request submitted successfully.");
       e.currentTarget.reset();
     } catch (err) {
+      setIsError(true);
       setMessage(err instanceof Error ? err.message : "Failed");
     } finally {
       setLoading(false);
@@ -93,7 +96,9 @@ export function CertificateRequestForm({ eventOptions }: { eventOptions: { id: s
             </div>
           </>
         )}
-        {message && <p className="text-sm text-indigo-700">{message}</p>}
+        {message && (
+          <p className={`text-sm ${isError ? "text-red-700" : "text-indigo-700"}`}>{message}</p>
+        )}
         <button type="submit" className="btn-primary w-full" disabled={loading}>
           Submit request
         </button>

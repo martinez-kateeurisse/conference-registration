@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DEFAULT_MEMBERSHIP_FEES, MEMBERSHIP_CERT_LABELS } from "@/lib/constants";
+import { attachDemoProofToInput } from "@/lib/demo-proof";
 import type { MembershipCertType } from "@prisma/client";
 
 const TYPES = Object.entries(MEMBERSHIP_CERT_LABELS) as [MembershipCertType, string][];
@@ -24,8 +25,10 @@ export function MembershipForms({
     type: MembershipCertType;
     status: string;
     expiryDate: string | null;
+    latestPaymentStatus: string | null;
   }[];
 }) {
+  const proofRef = useRef<HTMLInputElement>(null);
   const [type, setType] = useState<MembershipCertType>("INDIVIDUAL_PROFESSIONAL");
   const [membershipId, setMembershipId] = useState(memberships[0]?.id ?? "");
   const [message, setMessage] = useState("");
@@ -156,6 +159,9 @@ export function MembershipForms({
                 {m.expiryDate && (
                   <span className="text-slate-500">Expires {m.expiryDate}</span>
                 )}
+                {m.latestPaymentStatus && (
+                  <span className="text-slate-500">Payment: {m.latestPaymentStatus}</span>
+                )}
               </li>
             ))}
           </ul>
@@ -271,12 +277,25 @@ export function MembershipForms({
               <div>
                 <label className="label">Upload proof (image/PDF, max 5MB)</label>
                 <input
+                  ref={proofRef}
                   name="proof"
                   type="file"
                   accept="image/*,.pdf,application/pdf"
                   className="input-field"
                   required
                 />
+                <button
+                  type="button"
+                  className="mt-2 text-xs text-indigo-600 hover:underline"
+                  onClick={() => {
+                    if (attachDemoProofToInput(proofRef.current)) {
+                      setIsError(false);
+                      setMessage("Demo receipt attached. Fill transaction details and submit.");
+                    }
+                  }}
+                >
+                  Use demo receipt (for testing)
+                </button>
               </div>
               <button type="submit" className="btn-primary w-full" disabled={payLoading}>
                 {payLoading ? "Submitting…" : "Submit payment"}
