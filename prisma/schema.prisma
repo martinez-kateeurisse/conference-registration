@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum RegistrationType {
+  EARLY
+  CONFIRMED
+}
+
+enum RegistrationStatus {
+  PENDING
+  PAYMENT_SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum PaymentMethod {
+  BANK
+  EWALLET
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum EventCertType {
+  PARTICIPATION
+  APPEARANCE
+  RECOGNITION
+  PRESENTATION
+}
+
+enum MembershipCertType {
+  INSTITUTIONAL_COMPANY
+  INSTITUTIONAL_UNIVERSITY
+  LIFETIME
+  INDIVIDUAL_PROFESSIONAL
+  INDIVIDUAL_STUDENT
+  MECHATRONICS_ENGINEER
+  MECHATRONICS_SPECIALIST
+  MECHATRONICS_TECHNICIAN
+}
+
+enum CertRequestStatus {
+  PENDING
+  APPROVED
+  ISSUED
+  REJECTED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  EXPIRED
+  PENDING_PAYMENT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(USER)
+  organization String?
+  phone        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  registrations     EventRegistration[]
+  payments          PaymentSubmission[]
+  eventCertRequests EventCertificateRequest[]
+  memberships       Membership[]
+  membershipPayments MembershipPayment[]
+}
+
+model Event {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  venue            String?
+  startDate        DateTime
+  endDate          DateTime
+  earlyDeadline    DateTime?
+  regularFee       Float
+  earlyFee         Float?
+  isResearchConf   Boolean  @default(true)
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  registrations EventRegistration[]
+}
+
+model EventRegistration {
+  id               String             @id @default(cuid())
+  userId           String
+  eventId          String
+  type             RegistrationType   @default(EARLY)
+  status           RegistrationStatus @default(PENDING)
+  qrCode           String             @unique
+  attendeeName     String
+  attendeeEmail    String
+  organization     String?
+  paperTitle       String?
+  checkedIn        Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  payment PaymentSubmission?
+
+  @@unique([userId, eventId])
+}
+
+model PaymentSubmission {
+  id              String        @id @default(cuid())
+  userId          String
+  registrationId  String        @unique
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  transactionDate DateTime
+  transactionNo   String
+  amount          Float
+  paymentFor      String
+  payeeName       String?
+  proofFileName   String
+  proofMimeType   String
+  proofData       Bytes
+  adminNotes      String?
+  reviewedAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  registration EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+}
+
+model EventCertificateRequest {
+  id            String            @id @default(cuid())
+  userId        String
+  eventId       String?
+  type          EventCertType
+  status        CertRequestStatus @default(PENDING)
+  recipientName String
+  role          String?
+  paperTitle    String?
+  presenterName String?
+  issuedAt      DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Membership {
+  id           String             @id @default(cuid())
+  userId       String
+  type         MembershipCertType
+  status       MembershipStatus   @default(PENDING_PAYMENT)
+  orgName      String?
+  memberId     String             @unique
+  startDate    DateTime?
+  expiryDate   DateTime?
+  renewalSent  Boolean            @default(false)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments MembershipPayment[]
+}
+
+model MembershipPayment {
+  id              String        @id @default(cuid())
+  userId          String
+  membershipId    String
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  transactionDate DateTime
+  transactionNo   String
+  amount          Float
+  paymentFor      String
+  payeeName       String?
+  proofFileName   String
+  proofMimeType   String
+  proofData       Bytes
+  isRenewal       Boolean       @default(false)
+  adminNotes      String?
+  reviewedAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+}
