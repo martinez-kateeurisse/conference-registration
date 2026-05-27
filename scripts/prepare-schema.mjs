@@ -13,3 +13,9 @@ if (url.startsWith("postgresql")) {
 }
 
 fs.writeFileSync(path, schema);
+
+// Restore postgresql in repo after local sqlite builds (avoid accidental commits)
+if (!url.startsWith("postgresql") && process.env.RESTORE_SCHEMA_PROVIDER !== "0") {
+  const restored = fs.readFileSync(path, "utf8").replace(/provider = "sqlite"/, 'provider = "postgresql"');
+  fs.writeFileSync(path, restored);
+}
