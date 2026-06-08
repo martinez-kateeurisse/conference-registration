@@ -84,7 +84,7 @@ export default async function CertificatesPage() {
     <div className="space-y-8">
       <section>
         <p className="section-kicker">Certificates</p>
-        <h1 className="mt-2 text-3xl font-black text-slate-950">Certificate logs</h1>
+        <h1 className="mt-2 text-3xl font-black text-slate-950">Certificates</h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
           Request and track certificate progress in one organized log. Pending,
           approved, issued, and rejected updates are grouped by certificate record.
@@ -94,7 +94,7 @@ export default async function CertificatesPage() {
       <CertificateRequestForm eventOptions={events} />
 
       <section>
-        <h2 className="mb-4 text-xl font-black text-slate-950">Your certificate logs</h2>
+        <h2 className="mb-4 text-xl font-black text-slate-950">Your certificates</h2>
         {certificateLogs.length === 0 ? (
           <div className="dashboard-card p-5 text-sm text-slate-600">
             No certificate requests yet. Submit a request above when you are ready.
@@ -112,18 +112,23 @@ export default async function CertificatesPage() {
                   <StatusBadge status={log.latestStatus} />
                 </div>
 
-                <div className="mt-4 space-y-2">
-                  {log.logs.map((entry) => (
-                    <div key={entry.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <StatusBadge status={entry.status} />
-                        <span className="font-semibold text-slate-500">Updated {formatDate(entry.updatedAt)}</span>
+                <details className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                  <summary className="cursor-pointer text-sm font-black text-slate-700">
+                    View status history
+                  </summary>
+                  <div className="mt-3 space-y-2">
+                    {log.logs.map((entry) => (
+                      <div key={entry.id} className="rounded-xl border border-slate-100 bg-white p-3 text-xs">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <StatusBadge status={entry.status} />
+                          <span className="font-semibold text-slate-500">Updated {formatDate(entry.updatedAt)}</span>
+                        </div>
+                        <p className="mt-2 text-slate-500">Requested {formatDate(entry.createdAt)}</p>
+                        {entry.issuedAt && <p className="text-slate-500">Issued {formatDate(entry.issuedAt)}</p>}
                       </div>
-                      <p className="mt-2 text-slate-500">Requested {formatDate(entry.createdAt)}</p>
-                      {entry.issuedAt && <p className="text-slate-500">Issued {formatDate(entry.issuedAt)}</p>}
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </details>
 
                 {log.issuedRequestId && (
                   <a
@@ -132,7 +137,7 @@ export default async function CertificatesPage() {
                     rel="noreferrer"
                     className="mt-4 inline-flex rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700"
                   >
-                    Open issued certificate
+                    View certificate
                   </a>
                 )}
               </article>

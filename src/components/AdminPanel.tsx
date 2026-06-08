@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { EVENT_CERT_LABELS } from "@/lib/constants";
 import { StatusBadge } from "@/components/StatusBadge";
 
+type AdminView = "event-payments" | "membership-payments" | "certificates" | null;
+
 type EventPayment = {
   id: string;
   transactionNo: string;
@@ -55,13 +57,22 @@ export function AdminPanel({
   certificates: Cert[];
 }) {
   const [msg, setMsg] = useState("");
+  const [view, setView] = useState<AdminView>(null);
 
-  const pendingCertificates = useMemo(
-    () => certificates.filter((certificate) => certificate.status === "PENDING"),
-    [certificates],
-  );
-  const completedCertificates = useMemo(
-    () => certificates.filter((certificate) => certificate.status !== "PENDING"),
+  const eventPending = eventPayments.filter((payment) => payment.status === "PENDING");
+  const eventApproved = eventPayments.filter((payment) => payment.status === "APPROVED");
+  const eventRejected = eventPayments.filter((payment) => payment.status === "REJECTED");
+  const membershipPending = membershipPayments.filter((payment) => payment.status === "PENDING");
+  const membershipApproved = membershipPayments.filter((payment) => payment.status === "APPROVED");
+  const membershipRejected = membershipPayments.filter((payment) => payment.status === "REJECTED");
+
+  const groupedCertificates = useMemo(
+    () => ({
+      pending: certificates.filter((certificate) => certificate.status === "PENDING"),
+      approved: certificates.filter((certificate) => certificate.status === "APPROVED"),
+      issued: certificates.filter((certificate) => certificate.status === "ISSUED"),
+      rejected: certificates.filter((certificate) => certificate.status === "REJECTED"),
+    }),
     [certificates],
   );
 
@@ -99,12 +110,6 @@ export function AdminPanel({
     window.location.reload();
   }
 
-  async function sendRenewals() {
-    const res = await fetch("/api/admin/renewals", { method: "POST" });
-    const data = await res.json();
-    setMsg(`Renewal emails sent: ${data.sent ?? 0}.`);
-  }
-
   return (
     <div className="space-y-8">
       {msg && (
@@ -113,122 +118,97 @@ export function AdminPanel({
         </div>
       )}
 
-      <section className="grid gap-5 xl:grid-cols-2">
-        <PaymentSection
-          title="Event payment verification"
-          empty="No event payments to review."
-          payments={eventPayments}
-          kind="event"
-          onReview={reviewPayment}
-        />
-        <PaymentSection
-          title="Membership payments"
-          empty="No membership payments to review."
-          payments={membershipPayments}
-          kind="membership"
-          onReview={reviewPayment}
-        />
-      </section>
+      {!view && (
+        <section className="grid gap-5 lg:grid-cols-3">
+          <AdminChoice
+            title="Event Payment Logs"
+            description="Review event registration payments by pending, approved, and rejected status."
+            count={eventPayments.length}
+            onClick={() => setView("event-payments")}
+          />
+          <AdminChoice
+            title="Membership Payment Logs"
+            description="Review membership applications and renewal payments."
+            count={membershipPayments.length}
+            onClick={() => setView("membership-payments")}
+          />
+          <AdminChoice
+            title="Certificate Logs"
+            description="Approve, issue, and audit certificate requests."
+            count={certificates.length}
+            onClick={() => setView("certificates")}
+          />
+        </section>
+      )}
 
-      <section className="dashboard-card p-5 md:p-6">
-        <div className="mb-5 flex flex-col justify-between gap-3 md:flex-row md:items-end">
-          <div>
-            <p className="section-kicker">Certificates</p>
-            <h2 className="mt-2 text-2xl font-black text-slate-950">Certificate logs</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Review pending requests and track approved, issued, or rejected certificates.
-            </p>
-          </div>
-          <div className="flex gap-2 text-xs font-black">
-            <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700">
-              Pending {pendingCertificates.length}
-            </span>
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-              Completed {completedCertificates.length}
-            </span>
-          </div>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          {certificates.map((certificate) => (
-            <article key={certificate.id} className="rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 className="font-black text-slate-950">
-                    {EVENT_CERT_LABELS[certificate.type] ?? certificate.type}
-                  </h3>
-                  <p className="mt-1 text-sm font-semibold text-slate-600">{certificate.recipientName}</p>
-                  {certificate.paperTitle && (
-                    <p className="mt-1 text-xs text-slate-500">Paper: {certificate.paperTitle}</p>
-                  )}
-                </div>
-                <StatusBadge status={certificate.status} />
-              </div>
-              <div className="mt-4 grid gap-2 text-xs text-slate-500 sm:grid-cols-2">
-                <p>Requested: {formatDate(certificate.createdAt)}</p>
-                <p>Updated: {formatDate(certificate.updatedAt)}</p>
-                <p>Issued: {formatDate(certificate.issuedAt)}</p>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {certificate.status === "PENDING" && (
-                  <>
-                    <button type="button" className="btn-primary px-3 py-2 text-xs" onClick={() => reviewCert(certificate.id, "approve")}>
-                      Approve
-                    </button>
-                    <button type="button" className="rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-600" onClick={() => reviewCert(certificate.id, "reject")}>
-                      Reject
-                    </button>
-                  </>
-                )}
-                {(certificate.status === "PENDING" || certificate.status === "APPROVED") && (
-                  <button type="button" className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700" onClick={() => reviewCert(certificate.id, "issue")}>
-                    Issue certificate
-                  </button>
-                )}
-                {certificate.status === "ISSUED" && (
-                  <a
-                    href={`/api/certificates/event/${certificate.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700"
-                  >
-                    Open certificate
-                  </a>
-                )}
-              </div>
-            </article>
-          ))}
-          {certificates.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
-              No certificate requests yet.
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="dashboard-card border-indigo-100 bg-indigo-50/80 p-6">
-        <h2 className="text-xl font-black text-slate-950">Membership renewal emails</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Send reminders to members expiring within 30 days. If an email provider is not configured,
-          the message is logged for development testing.
-        </p>
-        <button type="button" className="btn-primary mt-5" onClick={sendRenewals}>
-          Send renewal notifications
+      {view && (
+        <button
+          type="button"
+          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-600"
+          onClick={() => setView(null)}
+        >
+          Back to admin options
         </button>
-      </section>
+      )}
+
+      {view === "event-payments" && (
+        <div className="space-y-6">
+          <PaymentGroup title="Pending event payments" payments={eventPending} kind="event" onReview={reviewPayment} />
+          <PaymentGroup title="Approved event payments" payments={eventApproved} kind="event" onReview={reviewPayment} />
+          <PaymentGroup title="Rejected event payments" payments={eventRejected} kind="event" onReview={reviewPayment} />
+        </div>
+      )}
+
+      {view === "membership-payments" && (
+        <div className="space-y-6">
+          <PaymentGroup title="Pending membership payments" payments={membershipPending} kind="membership" onReview={reviewPayment} />
+          <PaymentGroup title="Approved membership payments" payments={membershipApproved} kind="membership" onReview={reviewPayment} />
+          <PaymentGroup title="Rejected membership payments" payments={membershipRejected} kind="membership" onReview={reviewPayment} />
+        </div>
+      )}
+
+      {view === "certificates" && (
+        <div className="space-y-6">
+          <CertificateGroup title="Pending certificates" certificates={groupedCertificates.pending} onReview={reviewCert} />
+          <CertificateGroup title="Approved certificates" certificates={groupedCertificates.approved} onReview={reviewCert} />
+          <CertificateGroup title="Issued certificates" certificates={groupedCertificates.issued} onReview={reviewCert} />
+          <CertificateGroup title="Rejected certificates" certificates={groupedCertificates.rejected} onReview={reviewCert} />
+        </div>
+      )}
     </div>
   );
 }
 
-function PaymentSection({
+function AdminChoice({
   title,
-  empty,
+  description,
+  count,
+  onClick,
+}: {
+  title: string;
+  description: string;
+  count: number;
+  onClick: () => void;
+}) {
+  return (
+    <button type="button" className="dashboard-card dashboard-action-card p-5 text-left" onClick={onClick}>
+      <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-black uppercase text-indigo-600">
+        {count} records
+      </span>
+      <h2 className="mt-5 text-xl font-black text-slate-950">{title}</h2>
+      <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
+      <p className="mt-5 text-sm font-black text-indigo-600">Open logs -&gt;</p>
+    </button>
+  );
+}
+
+function PaymentGroup({
+  title,
   payments,
   kind,
   onReview,
 }: {
   title: string;
-  empty: string;
   payments: Array<EventPayment | MemPayment>;
   kind: "event" | "membership";
   onReview: (id: string, action: "approve" | "reject", kind: "event" | "membership") => void;
@@ -236,58 +216,124 @@ function PaymentSection({
   return (
     <section className="dashboard-card p-5 md:p-6">
       <h2 className="text-xl font-black text-slate-950">{title}</h2>
-      <div className="mt-5 space-y-3">
-        {payments.map((payment) => {
-          const isEvent = kind === "event";
-          const eventPayment = payment as EventPayment;
-          const membershipPayment = payment as MemPayment;
-          return (
-            <article key={payment.id} className="rounded-2xl border border-slate-200 bg-white p-4 text-sm">
-              <div className="flex flex-wrap justify-between gap-3">
-                <div>
-                  <h3 className="font-black text-slate-950">
-                    {isEvent ? eventPayment.registration.attendeeName : membershipPayment.membership.memberId}
-                  </h3>
-                  <p className="mt-1 text-slate-600">
-                    {payment.transactionNo} - PHP {payment.amount}
-                    {!isEvent && membershipPayment.isRenewal ? " - Renewal" : ""}
-                  </p>
-                </div>
-                <StatusBadge status={payment.status} />
+      <div className="mt-5 overflow-x-auto">
+        <table className="min-w-full text-left text-sm">
+          <thead className="text-xs uppercase text-slate-500">
+            <tr>
+              <th className="py-3 pr-4">Name / ID</th>
+              <th className="py-3 pr-4">Transaction</th>
+              <th className="py-3 pr-4">Amount</th>
+              <th className="py-3 pr-4">Submitted</th>
+              <th className="py-3 pr-4">Reviewed</th>
+              <th className="py-3 pr-4">Status</th>
+              <th className="py-3 pr-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {payments.map((payment) => {
+              const eventPayment = payment as EventPayment;
+              const membershipPayment = payment as MemPayment;
+              return (
+                <tr key={payment.id}>
+                  <td className="py-3 pr-4 font-bold text-slate-900">
+                    {kind === "event" ? eventPayment.registration.attendeeName : membershipPayment.membership.memberId}
+                  </td>
+                  <td className="py-3 pr-4 text-slate-600">{payment.transactionNo}</td>
+                  <td className="py-3 pr-4 text-slate-600">PHP {payment.amount}</td>
+                  <td className="py-3 pr-4 text-slate-500">{formatDate(payment.createdAt)}</td>
+                  <td className="py-3 pr-4 text-slate-500">{formatDate(payment.reviewedAt)}</td>
+                  <td className="py-3 pr-4"><StatusBadge status={payment.status} /></td>
+                  <td className="py-3 pr-4">
+                    <div className="flex flex-wrap gap-2">
+                      <a
+                        href={`/api/payments/proof/${payment.id}?kind=${kind}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700"
+                      >
+                        View proof
+                      </a>
+                      {payment.status === "PENDING" && (
+                        <>
+                          <button type="button" className="btn-primary px-3 py-2 text-xs" onClick={() => onReview(payment.id, "approve", kind)}>
+                            Approve
+                          </button>
+                          <button type="button" className="rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-600" onClick={() => onReview(payment.id, "reject", kind)}>
+                            Reject
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        {payments.length === 0 && <p className="py-5 text-sm text-slate-500">No records in this category.</p>}
+      </div>
+    </section>
+  );
+}
+
+function CertificateGroup({
+  title,
+  certificates,
+  onReview,
+}: {
+  title: string;
+  certificates: Cert[];
+  onReview: (id: string, action: "approve" | "issue" | "reject") => void;
+}) {
+  return (
+    <section className="dashboard-card p-5 md:p-6">
+      <h2 className="text-xl font-black text-slate-950">{title}</h2>
+      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+        {certificates.map((certificate) => (
+          <article key={certificate.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 className="font-black text-slate-950">{EVENT_CERT_LABELS[certificate.type]}</h3>
+                <p className="mt-1 text-sm font-semibold text-slate-600">{certificate.recipientName}</p>
+                {certificate.paperTitle && <p className="mt-1 text-xs text-slate-500">Paper: {certificate.paperTitle}</p>}
               </div>
-              <div className="mt-3 grid gap-2 text-xs text-slate-500 sm:grid-cols-2">
-                <p>Submitted: {formatDate(payment.createdAt)}</p>
-                <p>Reviewed: {formatDate(payment.reviewedAt)}</p>
-                {isEvent && <p>QR code: {eventPayment.registration.qrCode}</p>}
-              </div>
-              <div className="mt-4 flex flex-wrap items-center gap-2">
+              <StatusBadge status={certificate.status} />
+            </div>
+            <div className="mt-4 grid gap-2 text-xs text-slate-500 sm:grid-cols-2">
+              <p>Requested: {formatDate(certificate.createdAt)}</p>
+              <p>Updated: {formatDate(certificate.updatedAt)}</p>
+              <p>Issued: {formatDate(certificate.issuedAt)}</p>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {certificate.status === "PENDING" && (
+                <>
+                  <button type="button" className="btn-primary px-3 py-2 text-xs" onClick={() => onReview(certificate.id, "approve")}>
+                    Approve
+                  </button>
+                  <button type="button" className="rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-600" onClick={() => onReview(certificate.id, "reject")}>
+                    Reject
+                  </button>
+                </>
+              )}
+              {(certificate.status === "PENDING" || certificate.status === "APPROVED") && (
+                <button type="button" className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700" onClick={() => onReview(certificate.id, "issue")}>
+                  Issue certificate
+                </button>
+              )}
+              {certificate.status === "ISSUED" && (
                 <a
-                  href={`/api/payments/proof/${payment.id}?kind=${kind}`}
+                  href={`/api/certificates/event/${certificate.id}`}
                   target="_blank"
                   rel="noreferrer"
                   className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700"
                 >
-                  View proof
+                  View certificate
                 </a>
-                {payment.status === "PENDING" && (
-                  <>
-                    <button type="button" className="btn-primary px-3 py-2 text-xs" onClick={() => onReview(payment.id, "approve", kind)}>
-                      Approve
-                    </button>
-                    <button type="button" className="rounded-xl border border-red-200 px-3 py-2 text-xs font-bold text-red-600" onClick={() => onReview(payment.id, "reject", kind)}>
-                      Reject
-                    </button>
-                  </>
-                )}
-              </div>
-            </article>
-          );
-        })}
-        {payments.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
-            {empty}
-          </div>
-        )}
+              )}
+            </div>
+          </article>
+        ))}
+        {certificates.length === 0 && <p className="text-sm text-slate-500">No records in this category.</p>}
       </div>
     </section>
   );

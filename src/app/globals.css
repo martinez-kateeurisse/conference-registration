@@ -619,6 +619,43 @@ html {
   box-shadow: 0 24px 54px -36px rgba(79, 70, 229, 0.55);
 }
 
+.ticket-card {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 1.4rem;
+  background:
+    radial-gradient(circle at 72% 30%, rgba(99, 102, 241, 0.34), transparent 14rem),
+    radial-gradient(circle at 15% 80%, rgba(34, 211, 238, 0.16), transparent 14rem),
+    #0f172a;
+  box-shadow: 0 26px 70px -42px rgba(15, 23, 42, 0.9);
+}
+
+@media (min-width: 700px) {
+  .ticket-card {
+    grid-template-columns: minmax(0, 1fr) 13rem;
+  }
+}
+
+.ticket-card-main {
+  padding: 1.5rem;
+}
+
+.ticket-card-side {
+  display: grid;
+  place-items: center;
+  border-top: 1px dashed rgba(255, 255, 255, 0.18);
+  background: rgba(15, 23, 42, 0.42);
+  padding: 1.5rem;
+}
+
+@media (min-width: 700px) {
+  .ticket-card-side {
+    border-top: 0;
+    border-left: 1px dashed rgba(255, 255, 255, 0.18);
+  }
+}
+
 .label {
   display: block;
   font-size: 0.8rem;

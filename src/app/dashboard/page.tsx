@@ -61,6 +61,11 @@ export default async function DashboardPage() {
               href="/dashboard/events"
             />
             <QuickCard
+              title="View participation tickets"
+              description="Open approved event tickets with QR codes for attendance verification."
+              href="/dashboard/tickets"
+            />
+            <QuickCard
               title="Request certificates"
               description="Prepare participation, appearance, recognition, presentation, and related event certificates."
               href="/dashboard/certificates"

@@ -7,7 +7,8 @@ import type { SessionUser } from "@/lib/auth";
 const links = [
   { href: "/dashboard", label: "Overview" },
   { href: "/dashboard/events", label: "Events" },
-  { href: "/dashboard/certificates", label: "Certificate Logs" },
+  { href: "/dashboard/tickets", label: "Tickets" },
+  { href: "/dashboard/certificates", label: "Certificates" },
   { href: "/dashboard/membership", label: "Membership" },
 ];
 
@@ -59,13 +60,22 @@ export function DashboardNav({ user }: { user: SessionUser }) {
               href="/admin"
               className={`dashboard-side-link ${pathname.startsWith("/admin") ? "dashboard-side-link-active" : ""}`}
             >
-              Admin Console
+              Admin
             </Link>
           )}
         </nav>
       </div>
 
       <div className="mt-8 border-t border-slate-200 pt-5">
+        <a
+          href="/#contact"
+          target="_blank"
+          rel="noreferrer"
+          className="mb-5 flex w-full items-center gap-3 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2 text-sm font-black text-indigo-700 transition hover:border-indigo-200 hover:bg-indigo-100"
+        >
+          <span aria-hidden="true">?</span>
+          Get help
+        </a>
         <div className="mb-4 flex items-center gap-3">
           <span className="dashboard-avatar">{initials(user.name) || "U"}</span>
           <span className="min-w-0">

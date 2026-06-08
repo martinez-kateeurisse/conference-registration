@@ -46,37 +46,49 @@ export async function GET(
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Event Ticket - ${escapeHtml(registration.attendeeName)}</title>
   <style>
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #eef2ff; font-family: Arial, sans-serif; color: #0f172a; }
-    .ticket { width: min(760px, calc(100vw - 32px)); background: white; border: 1px solid #c7d2fe; border-radius: 28px; overflow: hidden; box-shadow: 0 30px 80px rgba(79,70,229,.2); }
-    .top { background: linear-gradient(135deg, #6366f1, #ec4899); color: white; padding: 34px; }
-    .kicker { text-transform: uppercase; letter-spacing: .2em; font-weight: 800; font-size: 12px; opacity: .82; }
-    h1 { margin: 12px 0 0; font-size: 34px; }
-    .body { display: grid; gap: 26px; grid-template-columns: 1fr 220px; padding: 34px; align-items: center; }
-    .label { color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; }
-    p { margin: 8px 0 20px; font-size: 18px; font-weight: 800; }
-    img { width: 220px; border: 1px solid #e2e8f0; border-radius: 18px; padding: 12px; }
-    @media (max-width: 640px) { .body { grid-template-columns: 1fr; } img { width: 100%; max-width: 260px; } }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #eef2ff; font-family: Arial, sans-serif; color: #fff; }
+    .ticket { width: min(920px, calc(100vw - 32px)); display: grid; grid-template-columns: 1fr 250px; overflow: hidden; border: 1px solid rgba(129,140,248,.35); border-radius: 26px; background: radial-gradient(circle at 70% 30%, rgba(99,102,241,.45), transparent 18rem), radial-gradient(circle at 15% 80%, rgba(34,211,238,.18), transparent 16rem), #0f172a; box-shadow: 0 30px 80px rgba(15,23,42,.34); }
+    .main { padding: 38px; }
+    .side { display: grid; place-items: center; border-left: 1px dashed rgba(255,255,255,.18); background: rgba(15,23,42,.42); padding: 28px; text-align: center; }
+    .kicker { text-transform: uppercase; letter-spacing: .2em; font-weight: 800; font-size: 12px; color: #c7d2fe; }
+    h1 { margin: 12px 0 24px; font-size: 34px; line-height: 1.1; text-transform: uppercase; }
+    .name { font-size: 24px; font-weight: 900; margin-bottom: 28px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .label { color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; }
+    p { margin: 7px 0 0; font-size: 14px; font-weight: 900; color: #bfdbfe; }
+    img { width: 170px; border-radius: 18px; background: white; padding: 12px; }
+    .valid { margin-top: 18px; color: #86efac; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }
+    @media (max-width: 720px) { .ticket { grid-template-columns: 1fr; } .side { border-left: 0; border-top: 1px dashed rgba(255,255,255,.18); } .grid { grid-template-columns: 1fr; } }
     @media print { body { background: white; } .ticket { box-shadow: none; } }
   </style>
 </head>
 <body>
   <main class="ticket">
-    <section class="top">
+    <section class="main">
       <div class="kicker">Conference Portal QR Ticket</div>
       <h1>${escapeHtml(registration.event.name)}</h1>
-    </section>
-    <section class="body">
-      <div>
+      <div class="name">${escapeHtml(registration.attendeeName)}</div>
+      <div class="grid">
+        <div>
         <div class="label">Attendee</div>
         <p>${escapeHtml(registration.attendeeName)}</p>
+        </div>
+        <div>
         <div class="label">Event date</div>
         <p>${escapeHtml(eventDate)}</p>
+        </div>
+        <div>
         <div class="label">QR code</div>
         <p>${escapeHtml(registration.qrCode)}</p>
-        <div class="label">Status</div>
-        <p>${registration.checkedIn ? "Checked in" : "Approved for entry"}</p>
+        </div>
       </div>
-      <img src="${qrDataUrl}" alt="Registration QR code" />
+    </section>
+    <section class="side">
+      <div>
+        <img src="${qrDataUrl}" alt="Registration QR code" />
+        <div class="label">Status</div>
+        <p class="valid">${registration.checkedIn ? "Checked in" : "Paid and valid"}</p>
+      </div>
     </section>
   </main>
 </body>
