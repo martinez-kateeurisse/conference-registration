@@ -22,25 +22,35 @@ export async function POST(req: Request) {
     const event = await prisma.event.findUnique({ where: { id: body.eventId } });
     if (!event?.active) return NextResponse.json({ error: "Event not found" }, { status: 404 });
 
+    const normalizedEmail = body.attendeeEmail.trim().toLowerCase();
+    const existing = await prisma.eventRegistration.findFirst({
+      where: {
+        eventId: body.eventId,
+        OR: [
+          { userId: session.id },
+          { attendeeEmail: { equals: normalizedEmail, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (existing) {
+      return NextResponse.json(
+        { error: "You are already registered for this event." },
+        { status: 409 },
+      );
+    }
+
     const qrCode = `REG-${uuidv4().slice(0, 8).toUpperCase()}`;
-    const reg = await prisma.eventRegistration.upsert({
-      where: { userId_eventId: { userId: session.id, eventId: body.eventId } },
-      create: {
+    const reg = await prisma.eventRegistration.create({
+      data: {
         userId: session.id,
         eventId: body.eventId,
         type: "EARLY",
         status: "APPROVED",
         qrCode,
         attendeeName: body.attendeeName,
-        attendeeEmail: body.attendeeEmail,
-        organization: body.organization,
-        paperTitle: body.paperTitle,
-      },
-      update: {
-        type: "EARLY",
-        status: "APPROVED",
-        attendeeName: body.attendeeName,
-        attendeeEmail: body.attendeeEmail,
+        attendeeEmail: normalizedEmail,
         organization: body.organization,
         paperTitle: body.paperTitle,
       },

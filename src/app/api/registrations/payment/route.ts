@@ -33,6 +33,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
+    const normalizedEmail = body.attendeeEmail.trim().toLowerCase();
+    const existing = await prisma.eventRegistration.findFirst({
+      where: {
+        eventId: body.eventId,
+        OR: [
+          { userId: session.id },
+          { attendeeEmail: { equals: normalizedEmail, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (existing) {
+      return NextResponse.json(
+        { error: "You are already registered for this event." },
+        { status: 409 },
+      );
+    }
+
     const { proofData, proofMimeType, proofFileName } = parseProofBase64(
       body.proofBase64,
       body.proofMimeType,
@@ -43,32 +62,22 @@ export async function POST(req: Request) {
     const qrCode = `REG-${uuidv4().slice(0, 8).toUpperCase()}`;
 
     const result = await prisma.$transaction(async (tx) => {
-      const reg = await tx.eventRegistration.upsert({
-        where: { userId_eventId: { userId: session.id, eventId: body.eventId } },
-        create: {
+      const reg = await tx.eventRegistration.create({
+        data: {
           userId: session.id,
           eventId: body.eventId,
           type: "CONFIRMED",
           status: "PAYMENT_SUBMITTED",
           qrCode,
           attendeeName: body.attendeeName,
-          attendeeEmail: body.attendeeEmail,
-          organization: body.organization,
-          paperTitle: body.paperTitle,
-        },
-        update: {
-          type: "CONFIRMED",
-          status: "PAYMENT_SUBMITTED",
-          attendeeName: body.attendeeName,
-          attendeeEmail: body.attendeeEmail,
+          attendeeEmail: normalizedEmail,
           organization: body.organization,
           paperTitle: body.paperTitle,
         },
       });
 
-      const payment = await tx.paymentSubmission.upsert({
-        where: { registrationId: reg.id },
-        create: {
+      const payment = await tx.paymentSubmission.create({
+        data: {
           userId: session.id,
           registrationId: reg.id,
           method: body.method,
@@ -81,20 +90,6 @@ export async function POST(req: Request) {
           proofFileName,
           proofMimeType,
           proofData,
-        },
-        update: {
-          method: body.method,
-          status: "PENDING",
-          transactionDate,
-          transactionNo: body.transactionNo.trim(),
-          amount: body.amount,
-          paymentFor: body.paymentFor.trim(),
-          payeeName: body.payeeName?.trim() || null,
-          proofFileName,
-          proofMimeType,
-          proofData,
-          reviewedAt: null,
-          adminNotes: null,
         },
       });
 
