@@ -85,6 +85,9 @@ export default async function HomePage() {
             <a href="#faqs" className="nav-pill">
               FAQs
             </a>
+            <Link href="/contact" className="nav-pill">
+              Contact
+            </Link>
           </div>
 
           <div className="hidden items-center gap-3 sm:flex">
@@ -114,16 +117,6 @@ export default async function HomePage() {
                 A responsive service portal for event registration, QR check-ins, payment
                 verification, certificate requests, and membership renewal management.
               </p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Link href={primaryHref} className="hero-button bg-white text-indigo-700">
-                  {primaryText}
-                </Link>
-                {!session && (
-                  <Link href="/login" className="hero-button border border-white/45 text-white hover:bg-white/12">
-                    Sign in
-                  </Link>
-                )}
-              </div>
             </div>
 
             <div className="relative min-h-[380px]">
@@ -235,11 +228,53 @@ export default async function HomePage() {
         </section>
       </main>
 
-      <footer className="bg-slate-950 px-5 py-8 text-white">
-        <div className="mx-auto flex max-w-6xl flex-col justify-between gap-4 text-sm text-white/70 md:flex-row md:items-center">
-          <p className="font-semibold text-white">Conference Portal</p>
-          <p>All rights reserved. (c) 2026 Conference Portal.</p>
-        </div>
+      <footer className="site-footer text-white">
+        <section className="border-b border-white/10 px-5 py-16 text-center md:py-20">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="text-3xl font-black leading-tight md:text-5xl">
+              Ready to simplify your next conference?
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-300 md:text-base">
+              Bring registration, payment review, certificate requests, and membership
+              renewals into one organized portal built for busy event teams.
+            </p>
+            <Link href={primaryHref} className="footer-cta mt-8">
+              {primaryText}
+              <span aria-hidden="true">-&gt;</span>
+            </Link>
+          </div>
+        </section>
+
+        <section className="px-5 py-9">
+          <div className="mx-auto flex max-w-6xl flex-col gap-7 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-md text-sm leading-7 text-slate-400">
+              <p className="font-semibold text-slate-200">(c) 2026 Conference Portal. All rights reserved.</p>
+              <p className="mt-3">
+                Conference Portal helps event organizers manage registrations,
+                approvals, certificate workflows, and member records with clarity.
+              </p>
+            </div>
+            <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold text-slate-300">
+              <a href="#home" className="hover:text-white">
+                Home
+              </a>
+              <a href="#about" className="hover:text-white">
+                About
+              </a>
+              <a href="#faqs" className="hover:text-white">
+                FAQs
+              </a>
+              <Link href="/contact" className="hover:text-white">
+                Contact Us
+              </Link>
+              {!session && (
+                <Link href="/login" className="hover:text-white">
+                  Sign in
+                </Link>
+              )}
+            </nav>
+          </div>
+        </section>
       </footer>
     </div>
   );

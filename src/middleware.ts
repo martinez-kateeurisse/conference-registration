@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
 const COOKIE_NAME = "conf_session";
-const publicPaths = ["/", "/login", "/register", "/verify"];
+const publicPaths = ["/", "/contact", "/login", "/register", "/verify"];
 
 function isPublic(pathname: string) {
   if (publicPaths.includes(pathname)) return true;
