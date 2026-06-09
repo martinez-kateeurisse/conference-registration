@@ -76,13 +76,13 @@ export function DashboardNav({ user }: { user: SessionUser }) {
           <span aria-hidden="true">?</span>
           Get help
         </a>
-        <div className="mb-4 flex items-center gap-3">
+        <Link href="/dashboard/profile" className="mb-4 flex items-center gap-3 rounded-xl p-2 transition hover:bg-slate-50">
           <span className="dashboard-avatar">{initials(user.name) || "U"}</span>
           <span className="min-w-0">
             <span className="block truncate text-sm font-black text-slate-900">{user.name}</span>
             <span className="block truncate text-xs font-semibold text-slate-500">{user.role.toLowerCase()}</span>
           </span>
-        </div>
+        </Link>
         <form action="/api/auth/logout" method="POST">
           <button
             type="submit"

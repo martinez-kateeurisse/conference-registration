@@ -32,9 +32,11 @@ export default async function VerifyPage({
             <p>
               <span className="text-slate-500">Attendee:</span> {reg.attendeeName}
             </p>
-            <p>
-              <span className="text-slate-500">Email:</span> {reg.attendeeEmail}
-            </p>
+            {session?.role === "ADMIN" && (
+              <p>
+                <span className="text-slate-500">Email:</span> {reg.attendeeEmail}
+              </p>
+            )}
             <p>
               <span className="text-slate-500">Code:</span>{" "}
               <span className="font-mono">{reg.qrCode}</span>
