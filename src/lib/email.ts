@@ -1,4 +1,46 @@
-/** Sends renewal reminder. Uses Resend when RESEND_API_KEY is set; otherwise logs. */
+import nodemailer from "nodemailer";
+
+function createTransporter() {
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+}
+
+/** Sends password reset email via Gmail SMTP. Falls back to console.log in dev if credentials are missing. */
+export async function sendPasswordResetEmail(params: { to: string; resetUrl: string }) {
+  const subject = "Reset your password — Conference Portal";
+  const html = `
+    <p>You requested a password reset for your Conference Portal account.</p>
+    <p><a href="${params.resetUrl}">Click here to reset your password</a></p>
+    <p>This link expires in 1 hour. If you did not request this, ignore this email.</p>
+  `;
+  const text = `Reset your password here: ${params.resetUrl}\n\nThis link expires in 1 hour.`;
+
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.log("[email:dev] Password reset link:", params.resetUrl);
+    return { ok: true, mode: "console" as const };
+  }
+
+  const transporter = createTransporter();
+  await transporter.sendMail({
+    from: `"Conference Portal" <${process.env.GMAIL_USER}>`,
+    to: params.to,
+    subject,
+    text,
+    html,
+  });
+
+  return { ok: true, mode: "gmail" as const };
+}
+
+/** Sends renewal reminder via Gmail SMTP. Falls back to console.log in dev if credentials are missing. */
 export async function sendRenewalEmail(params: {
   to: string;
   name: string;
@@ -7,7 +49,7 @@ export async function sendRenewalEmail(params: {
   membershipType: string;
 }) {
   const subject = `Membership renewal reminder — ${params.memberId}`;
-  const body = `Dear ${params.name},
+  const text = `Dear ${params.name},
 
 Your ${params.membershipType} membership (${params.memberId}) will expire on ${params.expiryDate.toLocaleDateString()}.
 
@@ -15,31 +57,19 @@ Please log in to the portal to submit your renewal payment.
 
 Thank you.`;
 
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM ?? "noreply@example.com";
-
-  if (!apiKey) {
-    console.log("[email:dev]", { to: params.to, subject, body });
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.log("[email:dev]", { to: params.to, subject, text });
     return { ok: true, mode: "console" as const };
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: params.to,
-      subject,
-      text: body,
-    }),
+  const transporter = createTransporter();
+  await transporter.sendMail({
+    from: `"Conference Portal" <${process.env.GMAIL_USER}>`,
+    to: params.to,
+    subject,
+    text,
+    html: `<pre>${text}</pre>`,
   });
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Email failed: ${err}`);
-  }
-  return { ok: true, mode: "resend" as const };
+  return { ok: true, mode: "gmail" as const };
 }

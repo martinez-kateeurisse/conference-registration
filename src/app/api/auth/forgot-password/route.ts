@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendPasswordResetEmail } from "@/lib/email";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
-  const { email } = await req.json();
+  let body: { email?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const { email } = body;
 
   if (!email) {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -21,7 +28,11 @@ export async function POST(req: NextRequest) {
     });
 
     const base = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-    console.log("Reset link:", `${base}/reset-password?token=${token}`);
+    try {
+      await sendPasswordResetEmail({ to: user.email, resetUrl: `${base}/reset-password?token=${token}` });
+    } catch (err) {
+      console.error("Email send failed:", err);
+    }
   }
 
   return NextResponse.json({ ok: true });
