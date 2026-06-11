@@ -158,7 +158,7 @@ export function AuthModal({ initialMode = "signin" }: { initialMode?: Mode }) {
             {mode === "signup" && (
               <div>
                 <label className="label" htmlFor="name">
-                  Full name
+                  Full name *
                 </label>
                 <input 
                   id="name" 
@@ -173,7 +173,7 @@ export function AuthModal({ initialMode = "signin" }: { initialMode?: Mode }) {
 
             <div>
               <label className="label" htmlFor="email">
-                Email
+                Email *
               </label>
               <input
                 id="email"
@@ -188,7 +188,7 @@ export function AuthModal({ initialMode = "signin" }: { initialMode?: Mode }) {
 
             <div>
               <label className="label" htmlFor="password">
-                Password
+                Password *
               </label>
               <input
                 id="password"
