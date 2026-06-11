@@ -3,7 +3,7 @@ import type { EventCertType, MembershipCertType } from "@prisma/client";
 export const EVENT_CERT_LABELS: Record<EventCertType, string> = {
   PARTICIPATION: "Certificate of Participation",
   APPEARANCE: "Certificate of Appearance",
-  RECOGNITION: "Certificate of Recognition (Speaker / Committee / Sponsor)",
+  RECOGNITION: "Certificate of Recognition",
   PRESENTATION: "Certificate of Presentation (Research Conference)",
 };
 

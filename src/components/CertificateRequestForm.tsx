@@ -86,7 +86,12 @@ export function CertificateRequestForm({ eventOptions }: { eventOptions: { id: s
         {type === "RECOGNITION" && (
           <div>
             <label className="label">Role (Speaker / Committee / Sponsor)</label>
-            <input name="role" className="input-field" required />
+            <select name="role" className="input-field" required defaultValue="">
+              <option value="" disabled>Select a role...</option>
+              <option value="Speaker">Speaker</option>
+              <option value="Committee">Committee</option>
+              <option value="Sponsor">Sponsor</option>
+            </select>
           </div>
         )}
         {type === "PRESENTATION" && (
