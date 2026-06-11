@@ -84,6 +84,11 @@ html {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
+.input-field::-ms-reveal,
+.input-field::-ms-clear {
+  display: none;
+}
+
 .input-field:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
