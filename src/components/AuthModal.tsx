@@ -177,7 +177,7 @@ export function AuthModal({ initialMode = "signin" }: { initialMode?: Mode }) {
             {mode === "signup" && (
               <div>
                 <label className="label" htmlFor="name">
-                  Full name
+                  Full name *
                 </label>
                 <input 
                   id="name" 
@@ -192,7 +192,7 @@ export function AuthModal({ initialMode = "signin" }: { initialMode?: Mode }) {
 
             <div>
               <label className="label" htmlFor="email">
-                Email
+                Email *
               </label>
               <input
                 id="email"
@@ -208,7 +208,7 @@ export function AuthModal({ initialMode = "signin" }: { initialMode?: Mode }) {
             <div>
               <div className="mb-1 flex items-center justify-between">
                 <label className="label mb-0" htmlFor="password">
-                  Password
+                  Password *
                 </label>
                 {mode === "signin" && (
                   <Link
@@ -226,8 +226,8 @@ export function AuthModal({ initialMode = "signin" }: { initialMode?: Mode }) {
                   type={showPassword ? "text" : "password"}
                   className="input-field pr-11"
                   required
-                  minLength={8}
-                  maxLength={72}
+                  minLength={8}   // Maintained for sign-in and sign-up uniformity
+                  maxLength={72}  // FIX: Safety limit for standard hashing frameworks (Bcrypt maxes out at 72)
                   placeholder="Minimum 8 characters"
                 />
                 <button
