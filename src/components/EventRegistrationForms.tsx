@@ -159,12 +159,15 @@ export function EventRegistrationForms({ events }: { events: Event[] }) {
       <div className="grid lg:grid-cols-2 gap-8">
         <section className="p-6 bg-white rounded-2xl border border-slate-200">
           <h2 className="text-lg font-bold mb-1">A. Early registration</h2>
-          <p className="text-sm text-slate-500 mb-4">Instant unique QR per participant</p>
+          <p className="text-sm text-slate-500 mb-4">
+            Instant unique QR per participant <br />
+            Fields marked with * are required. 
+          </p>
           <form onSubmit={submitEarly} className="space-y-3">
-            <Field name="attendeeName" label="Attendee name" required />
-            <Field name="attendeeEmail" label="Email" type="email" required />
+            <Field name="attendeeName" label="Attendee name *" required />
+            <Field name="attendeeEmail" label="Email *" type="email" required />
             <Field name="organization" label="Organization" />
-            {event?.isResearchConf && <Field name="paperTitle" label="Paper title (optional)" />}
+            {event?.isResearchConf && <Field name="paperTitle" label="Paper title" />}
             <button type="submit" className="btn-primary w-full" disabled={loading}>
               Register &amp; get QR
             </button>
@@ -174,14 +177,17 @@ export function EventRegistrationForms({ events }: { events: Event[] }) {
         <section className="p-6 bg-white rounded-2xl border border-slate-200">
           <h2 className="text-lg font-bold mb-1">B. Confirmed registration (payment)</h2>
           <p className="text-sm text-slate-500 mb-4">
-            Upload proof — approved after bank/e-wallet verification
+            Upload proof — approved after bank/e-wallet verification <br />
+            Fields marked with * are required. 
           </p>
           <form onSubmit={submitPayment} className="space-y-3">
-            <Field name="attendeeName" label="Attendee name" required />
-            <Field name="attendeeEmail" label="Email" type="email" required />
+            <Field name="attendeeName" label="Attendee name *" required />
+            <Field name="attendeeEmail" label="Email *" type="email" required />
             <Field name="organization" label="Organization" />
             <div>
-              <label className="label">Payment method</label>
+              <label className="label">
+                Payment method *
+              </label>
               <select name="method" className="input-field" required>
                 <option value="BANK">Bank transfer</option>
                 <option value="EWALLET">E-Wallet</option>
@@ -189,17 +195,19 @@ export function EventRegistrationForms({ events }: { events: Event[] }) {
             </div>
             <Field
               name="transactionDate"
-              label="Transaction date"
+              label="Transaction date *"
               type="date"
               required
               defaultValue={new Date().toISOString().slice(0, 10)}
             />
-            <Field name="transactionNo" label="Transaction number" required />
-            <Field name="amount" label="Amount (PHP)" type="number" required />
-            <Field name="paymentFor" label="Payment for" required />
+            <Field name="transactionNo" label="Transaction number *" required />
+            <Field name="amount" label="Amount (PHP) *" type="number" required />
+            <Field name="paymentFor" label="Payment for *" required />
             <Field name="payeeName" label="Payee name (for OR)" />
             <div>
-              <label className="label">Upload proof (image/PDF, max 5MB)</label>
+              <label className="label">
+                Upload proof (image/PDF, max 5MB) *
+              </label>
               <input
                 ref={proofRef}
                 name="proof"
