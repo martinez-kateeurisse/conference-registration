@@ -126,8 +126,8 @@ export default async function HomePage() {
             <div className="relative min-h-[380px]">
               <div className="pointer-events-none absolute left-5 top-8 h-36 w-36 rounded-full bg-white/20 blur-3xl" />
               <div className="pointer-events-none absolute bottom-10 right-0 h-44 w-44 rounded-full bg-indigo-300/20 blur-3xl" />
-              <div className="relative mx-auto max-w-md rounded-[2rem] border border-white/30 bg-white/18 p-4 shadow-2xl backdrop-blur-xl">
-                <div className="rounded-[1.5rem] bg-white p-4 text-slate-950 shadow-xl">
+              <div className="relative mx-auto max-w-md rounded-[2rem] border border-white/30 bg-white/18 p-5 shadow-2xl backdrop-blur-xl">
+                <div className="rounded-[1.5rem] bg-white p-6 text-slate-950 shadow-xl">
                   <div className="mb-5 flex items-center justify-between">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-500">
@@ -139,7 +139,7 @@ export default async function HomePage() {
                       Active
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-3 text-center">
                     {[
                       ["248", "Registered"],
                       ["91%", "Approved"],
