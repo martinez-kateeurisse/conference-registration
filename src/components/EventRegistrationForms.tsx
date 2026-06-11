@@ -216,18 +216,6 @@ export function EventRegistrationForms({ events }: { events: Event[] }) {
                 className="input-field"
                 required
               />
-              <label className="label">Upload proof (image/PDF, max 5MB)</label>
-              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-indigo-300 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-600 hover:bg-indigo-100 transition">
-                Choose file to upload
-                <input
-                  ref={proofRef}
-                  name="proof"
-                  type="file"
-                  accept="image/*,.pdf,application/pdf"
-                  className="hidden"
-                  required
-                />
-              </label>
               <button
                 type="button"
                 className="mt-2 text-xs text-indigo-600 hover:underline"
